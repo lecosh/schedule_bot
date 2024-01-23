@@ -84,7 +84,8 @@ def return_schedule():
 def handle_text(message):
     get_url()
     while True:
-        if int(datetime.now().hour) == 23 and int(datetime.now().minute) == 0:
+        time.sleep(60)
+        if int(datetime.now().hour) == 22 and int(datetime.now().minute) == 0:
             bot.send_message(message.chat.id, return_schedule())
             time.sleep(60)
 
