@@ -91,6 +91,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
     try:
+        logger.info("Bot has been started...")
         bot.infinity_polling(none_stop=True)
     except Exception as e:
         logger.error(e, exc_info=True)
