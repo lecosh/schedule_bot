@@ -3,24 +3,26 @@ import requests
 from datetime import datetime
 import telebot
 import time
+import logging
+from constants import *
 
-url_base = "https://ruz.spbstu.ru/faculty/125/groups/38684?date="
-bot = telebot.TeleBot('6942429393:AAFfPt6qtu6HhzjGT5p4A48-CIg5QXnNo58')
+bot = telebot.TeleBot(API_KEY)
 schedule = ""
-url = ""
-week = ""
-work_schedule = ["Work: 12:00 - 17:00",
-                 "Work: 10:00 - 17:00",
-                 "Work: 10:00 - 14:00",
-                 "Work: 12:00 - 16:00"]
 
 @bot.message_handler(commands=["start"])
 
-
+@bot.message_handler(content_types=["text"])
+def handle_text(message):
+    bot.send_message(message.chat.id, "I'm ready to start")
+    while True:
+        time.sleep(120)
+        if int(datetime.now().hour) == 22 and int(datetime.now().minute) <= 5:
+            get_url()
+            bot.send_message(message.chat.id, return_schedule())
+            time.sleep(300)
 
 def start(m, res=False):
     bot.send_message(m.chat.id, 'Hello')
-
 
 def get_job():
     work_time = datetime.now().weekday() + 1
@@ -47,7 +49,13 @@ def get_place(href):
     return place_arr
 
 def get_xml(url):
-    response = requests.get(url)
+    logger.info("Requesting schedule...")
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        logger.error("Bad request:", e)
+    else:
+        logger.info("Request is OK")
     bs = BeautifulSoup(response.text, "html.parser")
     all_hrefs = bs.find_all("li", "schedule__day")
     for href in all_hrefs:
@@ -55,14 +63,12 @@ def get_xml(url):
             format_output(href)
 
 def get_url():
-    global url
     current_day = datetime.now()
-    url = url_base + str(current_day.year) + "-" + str(current_day.month) + "-" + str(current_day.day - current_day.weekday())
+    url = URL_BASE + str(current_day.year) + "-" + str(current_day.month) + "-" + str(current_day.day - current_day.weekday())
     get_xml(url)
 
 def format_output(day):
     global schedule
-    global week
     i = 0
     date = get_day(day)
     subjects = get_subjects(day)
@@ -80,14 +86,11 @@ def return_schedule():
         return "Polytech - chill" + "\n" + get_job()
     return schedule + "\n" + get_job()
 
-@bot.message_handler(content_types=["text"])
-def handle_text(message):
-    get_url()
-    while True:
-        time.sleep(60)
-        if int(datetime.now().hour) == 22 and int(datetime.now().minute) == 0:
-            bot.send_message(message.chat.id, return_schedule())
-            time.sleep(60)
-
-
-bot.infinity_polling()
+if __name__ == "__main__":
+    logger = logging.getLogger()
+    logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
+    logger=logging.getLogger(__name__)
+    try:
+        bot.infinity_polling(none_stop=True)
+    except Exception as e:
+        logger.error(e, exc_info=True)
