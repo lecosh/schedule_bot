@@ -11,7 +11,7 @@ url = ""
 week = ""
 work_schedule = ["Work: 12:00 - 17:00",
                  "Work: 10:00 - 17:00",
-                 "Work: 12:00 - 14:00",
+                 "Work: 10:00 - 14:00",
                  "Work: 12:00 - 16:00"]
 
 @bot.message_handler(commands=["start"])
