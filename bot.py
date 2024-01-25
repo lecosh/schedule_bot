@@ -10,27 +10,16 @@ from constants import *
 bot = telebot.TeleBot(API_KEY)
 study_schedule = ""
 
-@bot.message_handler(commands=["start"])
-def start(m, res=False):
-    bot.send_message(m.chat.id, 'Hello, text something to start bot')
-
-def handle_text():
-    while True:
-        time.sleep(1)
-        schedule.run_pending()
-        bot.send_message(chat_id, "Your schedule for tommorow is:\n" + return_schedule())
-        time.sleep(60)
-
 def get_gym():
     day = datetime.now()
     if day.weekday() == 1:
-        return "Gym: chest, triceps, shoulders"
+        return gym_schedule[0]
     elif day.weekday() == 3:
-        return "Gym: back, biceps, forearms"
+        return gym_schedule[1]
     elif day.weekday() == 6:
-        return "Gym: legs, deadlift"
+        return gym_schedule[2]
     else:
-        return "Gym: chill"
+        return gym_schedule[3]
 
 def get_job():
     work_time = datetime.now().weekday() + 1
@@ -69,7 +58,7 @@ def get_xml(url):
     for href in all_hrefs:
         if int(href.find("div", "schedule__date").text[:2]) == int(datetime.now().day + 1):
             format_output(href)
-
+            
 def get_url():
     current_day = datetime.now()
     url = URL_BASE + str(current_day.year) + "-" + str(current_day.month) + "-" + str(current_day.day - current_day.weekday())
@@ -88,25 +77,40 @@ def format_output(day):
         study_schedule += "\n"
         i += 1
 
+def job():
+    get_url()
+    return_schedule()
+
 def return_schedule():
     global study_schedule
     if study_schedule == "":
-        return "\t\t\t\tPolytech - chill" + "\n" + "\t\t\t\t" + get_job()+ "\n" + "\t\t\t\t" + get_gym()
-    return "\t\t\t\t" + study_schedule + "\n" + "\t\t\t\t" + get_job()+ "\n" + "\t\t\t\t" + get_gym()
+        bot.send_message(chat_id, "Your schedule for tommorow is:\n" + "\t\t\tPolytech - chill" + "\n" + "\t\t\t" + get_job()+ "\n" + "\t\t\t" + get_gym())
+    else:
+        bot.send_message(chat_id, "Your schedule for tommorow is:\n" + "\t\t\t" + study_schedule + "\n" + "\t\t\t" + get_job()+ "\n" + "\t\t\t" + get_gym())
+    time.sleep(60)
+
+@bot.message_handler(commands=["start"])
+def start(m, res=False):
+    bot.send_message(m.chat.id, 'Hello, text something to start bot')
+
+@bot.message_handler(content_types=["text"])
+def handle_text(message):
+    bot.send_message(chat_id, "Schedule has started...")
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 if __name__ == "__main__":
     logger = logging.getLogger()
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
-    bot.send_message(chat_id, "Bot has been started")
-    schedule.every().day.at("22:00").do(get_url)
-    handle_text()
+    bot.send_message(chat_id, "Bot has been started. Send something to start schedule...")
+    schedule.every().day.at("22:00").do(job)
     while True:
         try:
             logger.info("Bot has been started...")
-            bot.infinity_polling(none_stop=True, timeout=123)
+            bot.infinity_polling()
         except Exception as e:
-            logger.error(e, exc_info=True)
+            logger.error(e, exc_info=False)
             logger.info("Bot has been crushed. Trying to start again...")
-            bot.send_message("Bot has been crushed. Check logs")
             time.sleep(120)
