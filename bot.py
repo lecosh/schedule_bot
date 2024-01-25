@@ -24,6 +24,17 @@ def handle_text(message):
 def start(m, res=False):
     bot.send_message(m.chat.id, 'Hello')
 
+def get_gym():
+    day = datetime.now()
+    if day.weekday() == 1:
+        return "Gym: chest, triceps, shoulders"
+    elif day.weekday() == 3:
+        return "Gym: back, biceps, forearms"
+    elif day.weekday() == 6:
+        return "Gym: legs, deadlift"
+    else:
+        return "Gym: chill"
+
 def get_job():
     work_time = datetime.now().weekday() + 1
     if work_time > 3:
@@ -83,15 +94,18 @@ def format_output(day):
 def return_schedule():
     global schedule
     if schedule == "":
-        return "Polytech - chill" + "\n" + get_job()
-    return schedule + "\n" + get_job()
+        return "Polytech - chill" + "\n" + get_job()+ "\n" + get_gym()
+    return schedule + "\n" + get_job()+ "\n" + get_gym()
 
 if __name__ == "__main__":
     logger = logging.getLogger()
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
-    try:
-        logger.info("Bot has been started...")
-        bot.infinity_polling(none_stop=True)
-    except Exception as e:
-        logger.error(e, exc_info=True)
+    while True:
+        try:
+            logger.info("Bot has been started...")
+            bot.infinity_polling(none_stop=True)
+        except Exception as e:
+            logger.error(e, exc_info=True)
+            logger.info("Bot has been crushed. Trying to start again...")
+            time.sleep(120)
