@@ -104,7 +104,7 @@ if __name__ == "__main__":
     while True:
         try:
             logger.info("Bot has been started...")
-            bot.infinity_polling(none_stop=True)
+            bot.infinity_polling(none_stop=True, timeout=123)
         except Exception as e:
             logger.error(e, exc_info=True)
             logger.info("Bot has been crushed. Trying to start again...")
