@@ -4,25 +4,22 @@ from datetime import datetime
 import telebot
 import time
 import logging
+import schedule
 from constants import *
 
 bot = telebot.TeleBot(API_KEY)
-schedule = ""
+study_schedule = ""
 
 @bot.message_handler(commands=["start"])
-
-@bot.message_handler(content_types=["text"])
-def handle_text(message):
-    bot.send_message(message.chat.id, "I'm ready to start")
-    while True:
-        time.sleep(120)
-        if int(datetime.now().hour) == 22 and int(datetime.now().minute) <= 5:
-            get_url()
-            bot.send_message(message.chat.id, return_schedule())
-            time.sleep(300)
-
 def start(m, res=False):
-    bot.send_message(m.chat.id, 'Hello')
+    bot.send_message(m.chat.id, 'Hello, text something to start bot')
+
+def handle_text():
+    while True:
+        time.sleep(1)
+        schedule.run_pending()
+        bot.send_message(chat_id, "Your schedule for tommorow is:\n" + return_schedule())
+        time.sleep(60)
 
 def get_gym():
     day = datetime.now()
@@ -79,28 +76,31 @@ def get_url():
     get_xml(url)
 
 def format_output(day):
-    global schedule
+    global study_schedule
     i = 0
     date = get_day(day)
     subjects = get_subjects(day)
     places = get_place(day)
-    schedule = date + "\n"
+    study_schedule = date + "\n"
     for subj in subjects:
-        schedule += subj
-        schedule += "\t" + places[i]
-        schedule += "\n"
+        study_schedule += subj
+        study_schedule += "\t" + places[i]
+        study_schedule += "\n"
         i += 1
 
 def return_schedule():
-    global schedule
-    if schedule == "":
-        return "Polytech - chill" + "\n" + get_job()+ "\n" + get_gym()
-    return schedule + "\n" + get_job()+ "\n" + get_gym()
+    global study_schedule
+    if study_schedule == "":
+        return "\t\t\t\tPolytech - chill" + "\n" + "\t\t\t\t" + get_job()+ "\n" + "\t\t\t\t" + get_gym()
+    return "\t\t\t\t" + study_schedule + "\n" + "\t\t\t\t" + get_job()+ "\n" + "\t\t\t\t" + get_gym()
 
 if __name__ == "__main__":
     logger = logging.getLogger()
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
+    bot.send_message(chat_id, "Bot has been started")
+    schedule.every().day.at("22:00").do(get_url)
+    handle_text()
     while True:
         try:
             logger.info("Bot has been started...")
@@ -108,4 +108,5 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(e, exc_info=True)
             logger.info("Bot has been crushed. Trying to start again...")
+            bot.send_message("Bot has been crushed. Check logs")
             time.sleep(120)
