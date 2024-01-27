@@ -11,12 +11,12 @@ bot = telebot.TeleBot(API_KEY)
 study_schedule = ""
 
 def get_gym():
-    day = datetime.now()
-    if day.weekday() == 1:
+    day = datetime.now().weekday() + 1
+    if day == 1:
         return gym_schedule[0]
-    elif day.weekday() == 3:
+    elif day == 3:
         return gym_schedule[1]
-    elif day.weekday() == 6:
+    elif day == 6:
         return gym_schedule[2]
     else:
         return gym_schedule[3]
@@ -111,6 +111,6 @@ if __name__ == "__main__":
             logger.info("Bot has been started...")
             bot.infinity_polling()
         except Exception as e:
-            logger.error(e, exc_info=False)
-            logger.info("Bot has been crushed. Trying to start again...")
+            # logger.error(e, exc_info=False)
+            logger.error("Bot has been crushed. Trying to start again...")
             time.sleep(120)
