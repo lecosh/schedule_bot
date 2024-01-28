@@ -10,19 +10,25 @@ from constants import *
 bot = telebot.TeleBot(API_KEY)
 study_schedule = ""
 
+def get_tomorrow_weekday():
+    day = datetime.now().weekday() % 6
+    if day != 0:
+        return day + 1
+    return day
+
 def get_gym():
-    day = datetime.now().weekday() + 1
-    if day == 1:
+    day = get_tomorrow_weekday()
+    if day == 0:
         return gym_schedule[0]
     elif day == 3:
         return gym_schedule[1]
-    elif day == 6:
+    elif day == 5:
         return gym_schedule[2]
     else:
         return gym_schedule[3]
 
 def get_job():
-    work_time = datetime.now().weekday() + 1
+    work_time = get_tomorrow_weekday()
     if work_time > 3:
         return "Work - Chill"
     else:
@@ -56,7 +62,7 @@ def get_xml(url):
     bs = BeautifulSoup(response.text, "html.parser")
     all_hrefs = bs.find_all("li", "schedule__day")
     for href in all_hrefs:
-        if int(href.find("div", "schedule__date").text[:2]) == int(datetime.now().day + 1):
+        if int(href.find("div", "schedule__date").text[:2]) == int(datetime.now().today() + datetime.timedelta(days=1)):
             format_output(href)
             
 def get_url():
@@ -105,7 +111,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
     bot.send_message(chat_id, "Bot has been started. Send something to start schedule...")
-    schedule.every().day.at("22:00").do(job)
+    schedule.every().day.at("22:42").do(job)
     while True:
         try:
             logger.info("Bot has been started...")
