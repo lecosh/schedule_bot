@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import telebot
 import time
 import logging
@@ -61,8 +61,9 @@ def get_xml(url):
         logger.info("Request is OK")
     bs = BeautifulSoup(response.text, "html.parser")
     all_hrefs = bs.find_all("li", "schedule__day")
+    time_obj = datetime.now().today() + timedelta(days=1)
     for href in all_hrefs:
-        if int(href.find("div", "schedule__date").text[:2]) == int(datetime.now().today() + datetime.timedelta(days=1)):
+        if int(href.find("div", "schedule__date").text[:2]) == int(str(time_obj.date())[-2:]):
             format_output(href)
             
 def get_url():
@@ -111,8 +112,9 @@ if __name__ == "__main__":
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
     bot.send_message(chat_id, "Bot has been started. Send something to start schedule...")
-    schedule.every().day.at("22:42").do(job)
+    schedule.every().day.at("14:11").do(job)
     while True:
+        schedule.run_pending()
         try:
             logger.info("Bot has been started...")
             bot.infinity_polling()
@@ -120,3 +122,4 @@ if __name__ == "__main__":
             # logger.error(e, exc_info=False)
             logger.error("Bot has been crushed. Trying to start again...")
             time.sleep(120)
+        # time.sleep(1)
