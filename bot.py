@@ -1,10 +1,3 @@
-from bs4 import BeautifulSoup
-import requests
-from datetime import datetime, timedelta
-import telebot
-import time
-import logging
-import schedule
 from constants import *
 
 bot = telebot.TeleBot(API_KEY)
@@ -61,14 +54,19 @@ def get_xml(url):
         logger.info("Request is OK")
     bs = BeautifulSoup(response.text, "html.parser")
     all_hrefs = bs.find_all("li", "schedule__day")
-    time_obj = datetime.now().today() + timedelta(days=1)
+    time_obj = (datetime.now().today() + timedelta(days=1)).day
     for href in all_hrefs:
-        if int(href.find("div", "schedule__date").text[:2]) == int(str(time_obj.date())[-2:]):
+        if int(href.find("div", "schedule__date").text[:2]) == int(time_obj):
             format_output(href)
+            break
             
 def get_url():
-    current_day = datetime.now()
-    url = URL_BASE + str(current_day.year) + "-" + str(current_day.month) + "-" + str(current_day.day - current_day.weekday())
+    if datetime.now().weekday() == 6:
+        current_day = datetime.now().today() + timedelta(days=1)
+    else:
+        current_day = datetime.now().today() - timedelta(days=datetime.now().weekday())
+    logger.info(current_day)
+    url = URL_BASE + str(current_day.year) + "-" + str(current_day.month) + "-" + str(current_day.day)
     get_xml(url)
 
 def format_output(day):
@@ -100,26 +98,14 @@ def return_schedule():
 def start(m, res=False):
     bot.send_message(m.chat.id, 'Hello, text something to start bot')
 
-@bot.message_handler(content_types=["text"])
-def handle_text(message):
-    bot.send_message(chat_id, "Schedule has started...")
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
 if __name__ == "__main__":
     logger = logging.getLogger()
     logging.basicConfig(filename=LOG_FILE,filemode="a", level=logging.INFO, format='%(asctime)-15s %(levelname)-2s %(message)s')
     logger=logging.getLogger(__name__)
-    bot.send_message(chat_id, "Bot has been started. Send something to start schedule...")
-    schedule.every().day.at("14:11").do(job)
+    bot.send_message(chat_id, "Bot has been started.")
+    schedule.every().day.at("11:43").do(job)
+    logger.info("Bot has been started...")
+    threading.Thread(target=bot.infinity_polling, name='bot_infinity_polling', daemon=True).start()
     while True:
         schedule.run_pending()
-        try:
-            logger.info("Bot has been started...")
-            bot.infinity_polling()
-        except Exception as e:
-            # logger.error(e, exc_info=False)
-            logger.error("Bot has been crushed. Trying to start again...")
-            time.sleep(120)
-        # time.sleep(1)
+        time.sleep(1)
