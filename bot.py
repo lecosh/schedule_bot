@@ -44,14 +44,17 @@ def get_xml(url):
     for href in all_hrefs:
         if int(href.find("div", "schedule__date").text[:2]) == int(time_obj):
             format_output(href)
-            break
+            return 
+    bot.send_message(chat_id, "Your schedule for tommorow is:\n" + \
+                              "Polytech: chill" + get_job()+ "\n" + get_gym())
+    
             
 def get_url():
     if datetime.now().weekday() == 6:
         monday_date = datetime.now().today() + timedelta(days=1)
     else:
         monday_date = datetime.now().today() - timedelta(days=datetime.now().weekday())
-    url = URL_BASE + str(current_day.year) + "-" + str(monday_date.month) + "-" + str(monday_date.day)
+    url = URL_BASE + str(monday_date.year) + "-" + str(monday_date.month) + "-" + str(monday_date.day)
     get_xml(url)
 
 def format_output(day):
@@ -78,7 +81,7 @@ def job():
 
 if __name__ == "__main__":
     bot.send_message(chat_id, "Bot has been started.")
-    schedule.every().day.at("19:25").do(job)
+    schedule.every().day.at("22:00").do(job)
     logger.info("Bot has been started...")
     threading.Thread(target=bot.infinity_polling, name='bot_infinity_polling', daemon=True).start()
     while True:
