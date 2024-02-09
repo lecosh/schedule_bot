@@ -62,9 +62,12 @@ def format_output(day):
     date = get_study_date(day)
     subjects = get_class_data(day, "lesson__subject")
     places = get_class_data(day, "lesson__places")
+    lesson_types = get_class_data(day, "lesson__type")
     study_schedule = date + "\n"
-    for subject, place in zip(subjects, places):
+    for subject, place, types in zip(subjects, places, lesson_types):
         study_schedule += subject
+        study_schedule += "\n"
+        study_schedule += types
         study_schedule += "\n"
         study_schedule += place
         study_schedule += "\n"
