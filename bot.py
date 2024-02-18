@@ -74,7 +74,7 @@ def format_output(day):
         
     if study_schedule == "":
         study_schedule = "Polytech - chill"
-    bot.send_message(chat_id, "Your schedule for tommorow is:\n" + \
+    bot.send_message(chat_id, "Your schedule for tomorrow is:\n" + \
                               study_schedule + get_job()+ "\n" + get_gym())
     study_schedule = ""
     time.sleep(60)
